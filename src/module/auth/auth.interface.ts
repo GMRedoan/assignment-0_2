@@ -6,3 +6,8 @@ export interface TSignupUser {
     password: string
     role: TUserRole
 }
+
+export interface TLoginUser {
+    email: string
+    password: string
+}
