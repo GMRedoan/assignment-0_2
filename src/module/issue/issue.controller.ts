@@ -50,7 +50,6 @@ const getAllIssues = async (req: Request, res: Response) => {
 } }
 
 const getIssueById = async (req: Request, res: Response) =>{
-    try {
         const { id } = req.params
 
         const result = await issueService.getIssueByIdFromDB(id as string)
@@ -66,12 +65,6 @@ const getIssueById = async (req: Request, res: Response) =>{
             success: true,
             data: result,
         })
-    } catch (error: any) {
-        res.status(500).json({
-            success: false,
-            message: error.message,
-        })
-    }
 }   
 
 const updateIssueById = async (req: Request, res: Response)=>{
