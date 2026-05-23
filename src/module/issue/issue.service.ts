@@ -185,7 +185,6 @@ const deleteIssueByIdFromDB = async (userPayload: TAuthUser, id: string) => {
         id,
     ]);
     const singleIssue = issueResult.rows[0];
-    console.log(singleIssue);
     if (!singleIssue) {
         throw new AppError(404, "Issue Not Found");
     }
