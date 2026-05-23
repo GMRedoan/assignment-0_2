@@ -151,10 +151,10 @@ const updateIssueByIdInDB = async (payload: TIssuePayload,
     ]);
     const singleIssue = issueResult.rows[0];
 
-    if (singleIssue.length === 0) {
+    if (!singleIssue) {
         throw new AppError(404, "Issue Not Found");
     }
-
+    
     const isContributor = userPayload.role === "contributor";
     if (isContributor) {
         if (singleIssue.reporter_id !== userPayload.id) {
@@ -168,13 +168,21 @@ const updateIssueByIdInDB = async (payload: TIssuePayload,
         }
     }
 
-    const updatedTitle = payload.title ?? singleIssue[0].title;
-    const updatedDescription = payload.description ?? singleIssue[0].description;
-    const updatedType = payload.type ?? singleIssue[0].type;
-
     const updatedResult = await pool.query(
-        `UPDATE issues SET title=$1, description=$2, type=$3, updated_at=NOW() WHERE id=$4 RETURNING *`,
-        [updatedTitle, updatedDescription, updatedType, id],
+        `UPDATE issues
+         SET
+            title = COALESCE($1, title),
+            description = COALESCE($2, description),
+            type = COALESCE($3, type),
+            updated_at = NOW()
+         WHERE id = $4
+         RETURNING *`,
+        [
+            payload.title,
+            payload.description,
+            payload.type,
+            id
+        ]
     );
 
     return updatedResult.rows[0];
