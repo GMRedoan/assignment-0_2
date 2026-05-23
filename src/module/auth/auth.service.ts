@@ -3,6 +3,7 @@ import { pool } from "../../db";
 import type { TLoginUser, TSignupUser } from "./auth.interface";
 import config from "../../config";
 import jwt from "jsonwebtoken";
+import AppError from "../../utils/appError";
 
 const signupUserInDB = async (payload: TSignupUser) => {
     const { name, email, password, role } = payload
@@ -10,7 +11,7 @@ const signupUserInDB = async (payload: TSignupUser) => {
     const existingUser = await pool.query('SELECT * FROM users WHERE email = $1', [email])
 
     if (existingUser.rows.length > 0) {
-        throw new Error('User with this email already exists')
+        throw new AppError(400, 'User with this email already exists')
     }
 
     const hashedPassword = await bcrypt.hash(password, 10)
@@ -28,7 +29,7 @@ const loginUserInDB = async (payload: TLoginUser) => {
     const existingUser = await pool.query('SELECT * FROM users WHERE email = $1', [email])
 
     if (existingUser.rows.length === 0) {
-        throw new Error('Invalid email or password')
+        throw new AppError(401, 'Invalid email or password')
     }
 
     const user = existingUser.rows[0]
@@ -36,7 +37,7 @@ const loginUserInDB = async (payload: TLoginUser) => {
     const isPasswordValid = await bcrypt.compare(password, user.password)
 
     if (!isPasswordValid) {
-        throw new Error('Invalid email or password')
+        throw new AppError(401, 'Invalid email or password')
     }
 
     const jwtPayload = {

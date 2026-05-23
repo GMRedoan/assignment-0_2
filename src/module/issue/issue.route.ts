@@ -19,4 +19,9 @@ router.put('/:id',
     authorizeRoles("contributor", "maintainer"),
     issueController.updateIssueById)
 
+router.delete('/:id',
+    auth,
+    authorizeRoles("maintainer"),
+    issueController.deleteIssueById)
+
 export const issuesRoutes = router

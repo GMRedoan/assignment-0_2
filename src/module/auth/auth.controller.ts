@@ -14,7 +14,6 @@ const signup = async (req: Request, res: Response) => {
         res.status(400).json({
             success: false,
             message: error.message,
-            error: error
         })
     }
  }
@@ -29,10 +28,9 @@ const signup = async (req: Request, res: Response) => {
             data: result
         })
     } catch (error : any) {
-        res.status(400).json({
+        res.status(401).json({
             success: false,
             message: error.message,
-            error: error
         })
     }
  }

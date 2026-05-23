@@ -1,5 +1,6 @@
 import type { Request, Response } from "express"
 import { issueService } from "./issue.service"
+import AppError from "../../utils/appError"
 
 const createIssue = async (req: Request, res: Response) => {
     try {
@@ -48,7 +49,7 @@ const getAllIssues = async (req: Request, res: Response) => {
     })
 } }
 
-const getIssueById = async (req: Request, res: Response) => {
+const getIssueById = async (req: Request, res: Response) =>{
     try {
         const { id } = req.params
 
@@ -73,32 +74,43 @@ const getIssueById = async (req: Request, res: Response) => {
     }
 }   
 
-const updateIssueById = async (req: Request, res: Response) =>{
-    try {
-        if (!req.user) {
-            throw new Error('User not found')
+const updateIssueById = async (req: Request, res: Response)=>{
+         if (!req.user) {
+            throw new AppError(404, 'User not found')
         }
 
         const { id } = req.params
-        const result = await issueService.updateIssueByIdInDB(id as string, req.body, req.user)
+        const result = await issueService.updateIssueByIdInDB(req.body, req.user, id as string)
 
         res.status(200).json({
             success: true,
             message: 'Issue updated successfully',
             data: result
         })
-    } catch (error: any) {
-        res.status(500).json({
-            success: false,
-            message: error.message,
-            error: error
-        })
-    }   
+}
+
+const deleteIssueById = async (req: Request, res: Response)=>{
+    if (!req.user) {
+        throw new AppError(404, "User Not Found");
+    }
+
+    const { id } = await req.params;
+    const result = await issueService.deleteIssueByIdFromDB(
+        req.user,
+        id as string,
+    );
+
+    res.status(200).json({
+        success: true,
+        message: 'Issue deleted successfully',
+    })
+
 }
 
 export const issueController = {
     getAllIssues,
     getIssueById,
     createIssue,
-    updateIssueById
+    updateIssueById,
+    deleteIssueById
 }

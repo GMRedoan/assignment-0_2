@@ -1,4 +1,5 @@
 import { pool } from "../../db"
+import AppError from "../../utils/appError";
 import type { TAuthUser, TIssuePayload } from "./issue.interface"
 
 const createIssueIntoDB = async (payload: TIssuePayload, userPayload: TAuthUser) => {
@@ -6,14 +7,14 @@ const createIssueIntoDB = async (payload: TIssuePayload, userPayload: TAuthUser)
     const { id } = userPayload;
 
     if (!title || !description || !type) {
-        throw new Error("Missing required fields");
+        throw new AppError(404, "Missing required fields");
     }
 
     const userResult = await pool.query(`SELECT * FROM users WHERE id=$1`, [id]);
     
     const validUser = userResult.rows[0];
     if (!validUser) {
-        throw new Error("User Not Valid");
+        throw new AppError(404, "User Not Found");
     }
 
     const issueResult = await pool.query(
@@ -119,7 +120,7 @@ const getIssueByIdFromDB = async (id: string) => {
     const result = await pool.query(query, [id])
 
     if (result.rows.length === 0) {
-        return null
+        throw new AppError(404, "issue not found")
     }
 
     const issue = result.rows[0]
@@ -142,8 +143,63 @@ const getIssueByIdFromDB = async (id: string) => {
     }
 }   
 
+const updateIssueByIdInDB = async (payload: TIssuePayload,
+    userPayload: TAuthUser,
+    id: string,) => {
+    const issueResult = await pool.query(`SELECT * FROM issues WHERE id=$1`, [
+        id,
+    ]);
+    const singleIssue = issueResult.rows[0];
+
+    if (singleIssue.length === 0) {
+        throw new AppError(404, "Issue Not Found");
+    }
+
+    const isContributor = userPayload.role === "contributor";
+    if (isContributor) {
+        if (singleIssue.reporter_id !== userPayload.id) {
+            throw new AppError(403, "Contributors can only update their own issues");
+        }
+        if (singleIssue.status !== "open") {
+            throw new AppError(
+                403,
+                "Contributors can only update issues with status 'open'",
+            );
+        }
+    }
+
+    const updatedTitle = payload.title ?? singleIssue[0].title;
+    const updatedDescription = payload.description ?? singleIssue[0].description;
+    const updatedType = payload.type ?? singleIssue[0].type;
+
+    const updatedResult = await pool.query(
+        `UPDATE issues SET title=$1, description=$2, type=$3, updated_at=NOW() WHERE id=$4 RETURNING *`,
+        [updatedTitle, updatedDescription, updatedType, id],
+    );
+
+    return updatedResult.rows[0];
+}
+
+const deleteIssueByIdFromDB = async (userPayload: TAuthUser, id: string) => {
+    const issueResult = await pool.query(`SELECT * FROM issues WHERE id=$1`, [
+        id,
+    ]);
+    const singleIssue = issueResult.rows[0];
+    console.log(singleIssue);
+    if (!singleIssue) {
+        throw new AppError(404, "Issue Not Found");
+    }
+    if (userPayload.role !== "maintainer") {
+        throw new AppError(403, "Only maintainers can delete issues");
+    }
+    await pool.query(`DELETE FROM issues WHERE id=$1`, [id]);
+    return { message: "Issue deleted successfully" };
+};
+
 export const issueService = {
     getAllIssuesFromDB,
     getIssueByIdFromDB,
-    createIssueIntoDB
+    createIssueIntoDB,
+    updateIssueByIdInDB,
+    deleteIssueByIdFromDB
 }
