@@ -18,8 +18,20 @@ export const initDB = async () => {
                 updated_at TIMESTAMP DEFAULT NOW()
             );
             `)
+        await pool.query(`
+        CREATE TABLE IF NOT EXISTS issues(
+        id SERIAL PRIMARY KEY,
+        title VARCHAR(150) NOT NULL,
+        description TEXT NOT NULL,
+        type VARCHAR(100),
+        status  VARCHAR(100) DEFAULT 'open',
+        reporter_id INT REFERENCES users(id) ON DELETE CASCADE,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+        )
+                `)
         console.log('Database connected successfully!')
-     } catch (error) {
+    } catch (error) {
         console.error('Error connecting to the database:', error)
     }
 }
