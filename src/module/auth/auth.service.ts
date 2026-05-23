@@ -8,6 +8,11 @@ import AppError from "../../utils/appError";
 const signupUserInDB = async (payload: TSignupUser) => {
     const { name, email, password, role } = payload
 
+    if (!name || !email || !password || !role) {
+        throw new AppError(404, "Missing required fields");
+    }
+
+
     const existingUser = await pool.query('SELECT * FROM users WHERE email = $1', [email])
 
     if (existingUser.rows.length > 0) {

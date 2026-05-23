@@ -3,8 +3,7 @@ import { issueService } from "./issue.service"
 import AppError from "../../utils/appError"
 
 const createIssue = async (req: Request, res: Response) => {
-    try {
-        if (!req.user) {
+         if (!req.user) {
             throw new Error('User not found')
         }
 
@@ -15,20 +14,10 @@ const createIssue = async (req: Request, res: Response) => {
             message: 'Issue Created Successfully',
             data: result,
         })
-
-    } catch (error : any) {
-        res.status(500).json({
-            success: false,
-            message: error.message,
-            error: error
-        })
-
-    }
 }
 
 const getAllIssues = async (req: Request, res: Response) => {
-    try {
-        const filters = {
+         const filters = {
             sort: req.query.sort as string,
             type: req.query.type as string,
             status: req.query.status as string,
@@ -41,13 +30,7 @@ const getAllIssues = async (req: Request, res: Response) => {
         data: result,
     })
 
-} catch (error: any) {
-    res.status(500).json({
-        success: false,
-        message: error.message,
-        error: error
-    })
-} }
+}
 
 const getIssueById = async (req: Request, res: Response) =>{
         const { id } = req.params
