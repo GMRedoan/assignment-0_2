@@ -6,7 +6,7 @@ const createIssue = async (req: Request, res: Response) => {
          if (!req.user) {
             throw new Error('User not found')
         }
-
+ 
         const result = await issueService.createIssueIntoDB(req.body, req.user)
 
         res.status(201).json({

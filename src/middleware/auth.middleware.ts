@@ -31,7 +31,7 @@ const auth = async (req: Request, res: Response, next: NextFunction) => {
              new AppError(403, "Only contributors or maintainers can create issues")
          )
     }
-
+ 
     next();
 }
 

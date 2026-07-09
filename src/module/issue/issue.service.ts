@@ -11,19 +11,17 @@ const createIssueIntoDB = async (payload: TIssuePayload, userPayload: TAuthUser)
     }
 
     const userResult = await pool.query(`SELECT * FROM users WHERE id=$1`, [id]);
-    
+
     const validUser = userResult.rows[0];
     if (!validUser) {
         throw new AppError(404, "User Not Found");
     }
 
     const issueResult = await pool.query(
-        `
-    INSERT INTO issues(
+        `INSERT INTO issues(
       title, description, type, reporter_id
     ) VALUES($1, $2, $3, $4)
-    RETURNING *
-    `,
+     RETURNING *`,
         [title, description, type, validUser.id],
     );
 
@@ -141,7 +139,7 @@ const getIssueByIdFromDB = async (id: string) => {
         created_at: issue.created_at,
         updated_at: issue.updated_at,
     }
-}   
+}
 
 const updateIssueByIdInDB = async (payload: TIssuePayload,
     userPayload: TAuthUser,
@@ -154,7 +152,7 @@ const updateIssueByIdInDB = async (payload: TIssuePayload,
     if (!singleIssue) {
         throw new AppError(404, "Issue Not Found");
     }
-    
+
     const isContributor = userPayload.role === "contributor";
     if (isContributor) {
         if (singleIssue.reporter_id !== userPayload.id) {
